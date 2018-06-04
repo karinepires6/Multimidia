@@ -1,6 +1,6 @@
 import cv2
 import numpy as np
-img = cv2.imread('naruto.png')
+img = cv2.imread('sarada.png')
 
 #Transforma a imagem original em matrizes nos canais RGB
 B = img[:, :, 0]
@@ -12,15 +12,14 @@ largura = img.shape[1]
 altura = img.shape[0]
 
 #Define uma matriz com zeros com as dimensões da imagem original
-blank_image = np.zeros((altura,largura,1), np.uint8)
+blank_image = np.zeros((altura,largura,3), np.uint8)
 
 #Percorre os pixels das matrizes RGB
 for linha in range(0, largura):
   for coluna in range(0, altura):  
     #Verifica se o pixel representa um pixel de pele
     if (R[coluna, linha] > 120 and R[coluna, linha] < 255) and (G[coluna, linha] > 90 and G[coluna, linha] < 250) and (B[coluna, linha] > 70 and B[coluna, linha] < 218) and (R[coluna, linha] > G[coluna, linha]) and (G[coluna, linha] > B[coluna, linha]):
-      #lin.append(0)
-      blank_image[coluna, linha] = 0
+      blank_image[coluna, linha] = [B[coluna, linha], G[coluna, linha], R[coluna, linha]]
     else:
       blank_image[coluna, linha] = 255
 
