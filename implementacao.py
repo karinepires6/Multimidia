@@ -1,5 +1,6 @@
 import cv2
 import numpy as np
+import random
 
 def extraiPele(img):
   #Transforma a imagem original em matrizes nos canais BGR
@@ -30,25 +31,41 @@ def extraiBorda(img):
   edges = cv2.Canny(img,100,200)
   return edges
 
+def random_color(): 
+  rgbl=[255,0,0] 
+  random.shuffle(rgbl) 
+  return tuple(rgbl)
+
+def segmentaRegioes(img):
+  #Define a altura e a largura da imagem de entrada
+  largura = img.shape[1]
+  altura = img.shape[0]
+
+  seed_pt = None
+  h, w = img.shape[:2]
+  mask = np.zeros((h+2, w+2), np.uint8)
+
+  listaCores = []
+  for linha in range(0, largura):
+    for coluna in range(0, altura):
+      if (img[coluna, linha] != 255) and :
+        randomCor = random_color()
+        seed_pt = coluna, linha
+        imgFloodFill = cv2.floodFill(img, mask, seed_pt, randomCor, (3,)*3, (3,)*3, cv2.FLOODFILL_FIXED_RANGE)
+    listaCores.append(randomCor)
+  
+  return imgFloodFill
+
 img = cv2.imread('naruto.png')
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 imgExtracaoBordas = extraiBorda(gray)
 
-#grayToBGR = cv2.cvtColor(imgExtracaoBordas, cv2.COLOR_GRAY2RGB)
-
-#imgSubtraidaSemBordas = cv2.subtract(img, grayToBGR)
-
-#cv2.imshow("Imagem Subtraida", imgSubtraidaSemBordas)
-
-#cv2.imshow("Imagem Original", img)
-
 imgPeleExtraida = extraiPele(img)
 #cv2.imshow("Imagem Pele sem Canny", extraiPele(img))
-#cv2.imshow("Imagem Pele", imgPeleExtraida)
 
-#imgFlood = cv2.floodFill(imgPeleExtraida, None, (0,0), 255)
+teste2 = segmentaRegioes(imgPeleExtraida)
 
-#cv2.imshow("Imagem Flood Fill", imgFlood)
+cv2.imshow("Imagem Flood Fill", teste2)
 
 cv2.waitKey(0)
