@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 import random
+import randomcolor
 
 def extraiPele(img):
   #Transforma a imagem original em matrizes nos canais BGR
@@ -31,10 +32,12 @@ def extraiBorda(img):
   edges = cv2.Canny(img,100,200)
   return edges
 
-def random_color(): 
-  rgbl=[255,0,0] 
-  random.shuffle(rgbl) 
-  return tuple(rgbl)
+def busca_sequencial(seq, x):
+  ''' (list, float) -> bool '''
+  for i in range(len(seq)):
+    if seq[i] == x:
+      return True
+    return False
 
 def segmentaRegioes(img):
   #Define a altura e a largura da imagem de entrada
@@ -45,16 +48,24 @@ def segmentaRegioes(img):
   h, w = img.shape[:2]
   mask = np.zeros((h+2, w+2), np.uint8)
 
-  listaCores = []
+  listaCores = [0]
   for linha in range(0, largura):
     for coluna in range(0, altura):
-      if (img[coluna, linha] != 255) and :
+      if img[coluna, linha, 0] != 255 and img[coluna, linha, 1] != 255 and img[coluna, linha, 2] != 255:
         randomCor = random_color()
-        seed_pt = coluna, linha
-        imgFloodFill = cv2.floodFill(img, mask, seed_pt, randomCor, (3,)*3, (3,)*3, cv2.FLOODFILL_FIXED_RANGE)
-    listaCores.append(randomCor)
+        if not busca_sequencial(listaCores, randomCor):
+          seed_pt = linha, coluna
+          cv2.floodFill(img, mask, seed_pt, randomCor, (30,)*3, (30,)*3, cv2.FLOODFILL_FIXED_RANGE)
+          listaCores.append(randomCor)
   
-  return imgFloodFill
+  return img
+
+def random_color(): 
+  levels = range(32,256,32) 
+  return tuple(random.choice(levels) for _ in range(3))
+
+def deteccaoRostoSimetria(img):
+  
 
 img = cv2.imread('naruto.png')
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -62,10 +73,5 @@ gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 imgExtracaoBordas = extraiBorda(gray)
 
 imgPeleExtraida = extraiPele(img)
-#cv2.imshow("Imagem Pele sem Canny", extraiPele(img))
-
-teste2 = segmentaRegioes(imgPeleExtraida)
-
-cv2.imshow("Imagem Flood Fill", teste2)
-
+cv2.imshow("Imagem Pele sem Canny", segmentaRegioes(imgPeleExtraida))
 cv2.waitKey(0)
