@@ -1,7 +1,15 @@
+"""
+******* Reconhecimento de faces em imagens de animes *******
+
+Autores: Karine Pires
+	 Nival Miguel
+"""
 import cv2
 import numpy as np
 import random
 import randomcolor
+from matplotlib import pyplot as plt
+from skimage import img_as_float
 
 def extraiPele(img):
   #Transforma a imagem original em matrizes nos canais BGR
@@ -65,13 +73,32 @@ def random_color():
   return tuple(random.choice(levels) for _ in range(3))
 
 def deteccaoRostoSimetria(img):
-  
+
+  image = img_as_float(img)
+
+  # define criteria and apply kmeans()
+  criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
+  ret, label, center = cv2.kmeans(image, 3, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
+
+  A = img[label.ravel()==0]
+  B = img[label.ravel()==1]
+
+  # Plot the data
+  plt.scatter(A[:,0],A[:,1])
+  plt.scatter(B[:,0],B[:,1],c = 'r')
+  plt.scatter(center[:,0],center[:,1],s = 80,c = 'y', marker = 's')
+  plt.xlabel('Height'),plt.ylabel('Weight')
+  plt.show()
 
 img = cv2.imread('naruto.png')
+
 gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 imgExtracaoBordas = extraiBorda(gray)
 
 imgPeleExtraida = extraiPele(img)
-cv2.imshow("Imagem Pele sem Canny", segmentaRegioes(imgPeleExtraida))
+imgSegmetada = segmentaRegioes(imgPeleExtraida)
+
+cv2.imshow("Imagem Segmentada", imgSegmetada)
+
 cv2.waitKey(0)
