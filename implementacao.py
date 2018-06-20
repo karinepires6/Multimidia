@@ -80,14 +80,17 @@ def kmeansImagemRGB(img):
   plt.axis("off")
   plt.imshow(image)
 
+  arrayImage = np.reshape(image, (image.shape[0] * image.shape[1], 3))
+
   # reshape the image to be a list of pixels
   image = image.reshape((image.shape[0] * image.shape[1], 3))
+  type(image)
 
-  print(image)
+  novalista = [x for x in image if list(x) != [255, 255, 255]]
 
   # cluster the pixel intensities
   clt = KMeans(3)
-  clt.fit(image)
+  clt.fit(novalista)
   return clt
 
 def centroid_histogram(clt):
@@ -109,6 +112,9 @@ def plot_colors(hist, centroids):
   bar = np.zeros((50, 300, 3), dtype = "uint8")
   startX = 0
 
+  print(hist)
+  print(centroids)
+
   # loop over the percentage of each cluster and the color of
   # each cluster
   for (percent, color) in zip(hist, centroids):
@@ -119,6 +125,15 @@ def plot_colors(hist, centroids):
     startX = endX
   # return the bar chart
   return bar
+
+#def buscaCoordenadas(img, vetRosto):
+#  x1, y1, x2, y2 = 0
+#  for linha in range(0, largura):
+#    for coluna in range(0, altura):
+#      if img[coluna, linha, 0] == vetRosto[coluna] and img[coluna, linha, 1] == vetRosto[coluna] and img[coluna, linha, 2] == vetRosto[coluna]:
+#        if coluna > y1 and linha > x1
+#          x1 = linha
+#          y1 = coluna
 
 img = cv2.imread('naruto.png')
 
