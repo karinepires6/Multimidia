@@ -1,15 +1,13 @@
 """
 ******* Reconhecimento de faces em imagens de animes *******
-
-Autores: Karine Pires
-	 Nival Miguel
+Autora: Karine Pires
 """
 import cv2
 import numpy as np
 import random
 import randomcolor
 from matplotlib import pyplot as plt
-from skimage import img_as_float
+from sklearn.cluster import KMeans
 
 def extraiPele(img):
   #Transforma a imagem original em matrizes nos canais BGR
@@ -72,23 +70,55 @@ def random_color():
   levels = range(32,256,32) 
   return tuple(random.choice(levels) for _ in range(3))
 
-def deteccaoRostoSimetria(img):
+def kmeansImagemRGB(img):
+  # load the image and convert it from BGR to RGB so that
+  # we can dispaly it with matplotlib
+  image = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+ 
+  # show our image
+  plt.figure()
+  plt.axis("off")
+  plt.imshow(image)
 
-  image = img_as_float(img)
+  # reshape the image to be a list of pixels
+  image = image.reshape((image.shape[0] * image.shape[1], 3))
 
-  # define criteria and apply kmeans()
-  criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 10, 1.0)
-  ret, label, center = cv2.kmeans(image, 3, None, criteria, 10, cv2.KMEANS_RANDOM_CENTERS)
+  print(image)
 
-  A = img[label.ravel()==0]
-  B = img[label.ravel()==1]
+  # cluster the pixel intensities
+  clt = KMeans(3)
+  clt.fit(image)
+  return clt
 
-  # Plot the data
-  plt.scatter(A[:,0],A[:,1])
-  plt.scatter(B[:,0],B[:,1],c = 'r')
-  plt.scatter(center[:,0],center[:,1],s = 80,c = 'y', marker = 's')
-  plt.xlabel('Height'),plt.ylabel('Weight')
-  plt.show()
+def centroid_histogram(clt):
+  # grab the number of different clusters and create a histogram
+  # based on the number of pixels assigned to each cluster
+  numLabels = np.arange(0, len(np.unique(clt.labels_)) + 1)
+  (hist, _) = np.histogram(clt.labels_, bins = numLabels)
+ 
+  # normalize the histogram, such that it sums to one
+  hist = hist.astype("float")
+  hist /= hist.sum()
+ 
+  # return the histogram
+  return hist
+
+def plot_colors(hist, centroids):
+  # initialize the bar chart representing the relative frequency
+  # of each of the colors
+  bar = np.zeros((50, 300, 3), dtype = "uint8")
+  startX = 0
+
+  # loop over the percentage of each cluster and the color of
+  # each cluster
+  for (percent, color) in zip(hist, centroids):
+    # plot the relative percentage of each cluster
+    endX = startX + (percent * 300)
+    cv2.rectangle(bar, (int(startX), 0), (int(endX), 50),
+    color.astype("uint8").tolist(), -1)
+    startX = endX
+  # return the bar chart
+  return bar
 
 img = cv2.imread('naruto.png')
 
@@ -99,6 +129,17 @@ imgExtracaoBordas = extraiBorda(gray)
 imgPeleExtraida = extraiPele(img)
 imgSegmetada = segmentaRegioes(imgPeleExtraida)
 
-cv2.imshow("Imagem Segmentada", imgSegmetada)
+teste = kmeansImagemRGB(imgSegmetada)
+
+# build a histogram of clusters and then create a figure
+# representing the number of pixels labeled to each color
+hist = centroid_histogram(teste)
+bar = plot_colors(hist, teste.cluster_centers_)
+ 
+# show our color bart
+plt.figure()
+plt.axis("off")
+plt.imshow(bar)
+plt.show()
 
 cv2.waitKey(0)
